@@ -2,6 +2,8 @@ package com.wym.mybatis.dao.a;
 
 import com.wym.mybatis.model.User;
 
+import java.util.List;
+
 public interface IUserMapper {
     int deleteByPrimaryKey(Integer id);
 
@@ -14,4 +16,6 @@ public interface IUserMapper {
     int updateByPrimaryKeySelective(User record);
 
     int updateByPrimaryKey(User record);
+
+    List<User> getList();
 }
