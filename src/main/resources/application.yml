@@ -1,4 +1,6 @@
 spring:
+  profiles:
+    active: prod
   datasource:
     mybatis:
       druid:
