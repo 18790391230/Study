@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO" name="console" packages="">
+    <Appenders>
+        <RollingFile name="console" fileName="/data/local/log/console.log" filePattern="/data/local/log/console.log.%d{yyyy-MM-dd}">
+            <PatternLayout>
+                <Pattern>%d{yyyy-MM-dd HH:mm:ss,SSS},%t,%c{2},%-p,%m%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+            </Policies>
+        </RollingFile>
+        <console name="STDOUT" target="SYSTEM_OUT">
+            <PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] %-30.45c.%M():%L - %m%n"/>
+        </console>
+    </Appenders>
+
+    <Loggers>
+        <asyncRoot level="info" includeLocation="true">
+            <AppenderRef ref="console"/>
+            <AppenderRef ref="STDOUT"/>
+        </asyncRoot>
+    </Loggers>
+
+</Configuration>
