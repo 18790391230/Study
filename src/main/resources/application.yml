@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    mybatis:
+      druid:
+        a:
+          type: com.alibaba.druid.pool.DruidDataSource
+          name: dataSourceA
+          username: root
+          password: root
+          url: jdbc:mysql://localhost:3306/study?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&autoReconnect=true&useCompression=true&zeroDateTimeBehavior=convertToNull&rewriteBatchedStatements=true
+          driver-class-name: com.mysql.jdbc.Driver
+        b:
+          type: com.alibaba.druid.pool.DruidDataSource
+          name: dataSourceB
+          username: root
+          password: root
+          url: jdbc:mysql://localhost:3306/study2?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&autoReconnect=true&useCompression=true&zeroDateTimeBehavior=convertToNull&rewriteBatchedStatements=true
+          driver-class-name: com.mysql.jdbc.Driver
