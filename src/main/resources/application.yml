@@ -21,7 +21,6 @@ spring:
 
 #配置分页
 pagehelper:
-  dialect: mysql
   offset-as-page-num: true
   row-bounds-with-count: true
 

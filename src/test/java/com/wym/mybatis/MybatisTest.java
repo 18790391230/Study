@@ -6,30 +6,30 @@ import com.wym.mybatis.dao.a.IUserMapper;
 import com.wym.mybatis.dao.b.IAccountMapper;
 import com.wym.mybatis.model.Account;
 import com.wym.mybatis.model.User;
+import com.wym.mybatis.service.IUserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.List;
+
 /**
  * @author v_ymmwu
  */
-@SpringBootTest(classes = MybatisApplication.class)
+@SpringBootTest
 public class MybatisTest {
 
 
     @Autowired
-    private IUserMapper userMapper;
+    private IUserService userService;
 
     @Autowired
     private IAccountMapper accountMapper;
 
     @Test
     public void test1() throws JsonProcessingException {
-        User user = userMapper.selectByPrimaryKey(1);
+        List<User> list = userService.getList();
         ObjectMapper objectMapper = new ObjectMapper();
-        System.out.println(objectMapper.writeValueAsString(user));
-
-        Account account = accountMapper.selectByPrimaryKey(1);
-        System.out.println(objectMapper.writeValueAsString(account));
+        System.out.println(objectMapper.writeValueAsString(list));
     }
 }
