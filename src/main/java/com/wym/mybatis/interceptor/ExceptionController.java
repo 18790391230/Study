@@ -1,5 +1,6 @@
 package com.wym.mybatis.interceptor;
 
+import com.wym.common.exception.BaseException;
 import com.wym.mybatis.response.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +41,10 @@ public class ExceptionController {
                 sb.append(error.getDefaultMessage()).append("\n");
             }
             msg = sb.toString();
+        } else if (ex instanceof BaseException) {
+            BaseException baseException = (BaseException) ex;
+            code = "500";
+            msg = baseException.getMsg();
         } else {
             code = "500";
             msg = "未知错误";
