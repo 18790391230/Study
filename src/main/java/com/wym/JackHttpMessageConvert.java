@@ -1,6 +1,6 @@
 package com.wym;
 
-import com.wym.mybatis.response.Response;
+import com.wym.common.response.Response;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 

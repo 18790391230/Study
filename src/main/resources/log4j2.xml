@@ -18,6 +18,9 @@
         <asyncLogger name="com.wym.mybatis.dao" level="debug" additivity="false">
             <AppenderRef ref="STDOUT"/>
         </asyncLogger>
+        <asyncLogger name="com.alibaba.druid.pool" level="debug" additivity="false">
+            <AppenderRef ref="STDOUT"/>
+        </asyncLogger>
 
         <asyncRoot level="info" includeLocation="true">
             <AppenderRef ref="console"/>

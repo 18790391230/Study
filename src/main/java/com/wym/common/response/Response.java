@@ -1,4 +1,4 @@
-package com.wym.mybatis.response;
+package com.wym.common.response;
 
 import io.swagger.annotations.ApiModel;
 

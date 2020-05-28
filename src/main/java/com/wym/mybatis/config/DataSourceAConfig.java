@@ -11,6 +11,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
 
@@ -42,5 +44,10 @@ public class DataSourceAConfig {
     @Bean
     public SqlSessionTemplate sqlSessionTemplateA(){
         return new SqlSessionTemplate(sqlSessionFactoryA());
+    }
+
+    @Bean
+    public DataSourceTransactionManager managerB() {
+        return new DataSourceTransactionManager(dataSourceA());
     }
 }

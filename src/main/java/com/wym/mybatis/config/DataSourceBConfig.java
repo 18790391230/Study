@@ -10,6 +10,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.TransactionManager;
 
 import javax.sql.DataSource;
 
@@ -41,5 +43,10 @@ public class DataSourceBConfig {
     @Bean
     public SqlSessionTemplate sqlSessionTemplateB() {
         return new SqlSessionTemplate(sqlSessionFactoryB());
+    }
+
+    @Bean
+    public DataSourceTransactionManager managerA() {
+        return new DataSourceTransactionManager(dataSourceB());
     }
 }

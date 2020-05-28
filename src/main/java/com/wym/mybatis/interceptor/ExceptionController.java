@@ -1,12 +1,11 @@
 package com.wym.mybatis.interceptor;
 
 import com.wym.common.exception.BaseException;
-import com.wym.mybatis.response.Response;
+import com.wym.common.response.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
-import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
