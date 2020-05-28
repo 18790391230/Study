@@ -8,9 +8,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-/**
- * @author v_ymmwu
- */
+
 @Component
 public class EnvRunner implements CommandLineRunner {
 

@@ -1,4 +1,4 @@
-package com.wym.mybatis;
+package com.wym.mybatis.config;
 
 import com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceBuilder;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -9,32 +9,29 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import javax.sql.DataSource;
 
-/**
- * @author v_ymmwu
- */
+
 @Configuration
-@MapperScan(basePackages = "com.wym.mybatis.dao.a", sqlSessionTemplateRef = "sqlSessionTemplateA")
-public class DataSourceAConfig {
+@MapperScan(basePackages = "com.wym.mybatis.dao.b", sqlSessionTemplateRef = "sqlSessionTemplateB")
+public class DataSourceBConfig {
 
     @Bean
-    @ConfigurationProperties(prefix = "spring.datasource.mybatis.druid.a")
-    public DataSource dataSourceA() {
+    @ConfigurationProperties(prefix = "spring.datasource.mybatis.druid.b")
+    public DataSource dataSourceB() {
         return DruidDataSourceBuilder.create().build();
     }
 
     @Bean
-    public SqlSessionFactory sqlSessionFactoryA() {
+    public SqlSessionFactory sqlSessionFactoryB() {
 
         try {
             SqlSessionFactoryBean bean = new SqlSessionFactoryBean();
-            bean.setDataSource(dataSourceA());
-            bean.setMapperLocations(new PathMatchingResourcePatternResolver().getResources("classpath*:mybatis/mapper/a" +
-                    "/*.xml"));
+            bean.setDataSource(dataSourceB());
+            bean.setMapperLocations(new PathMatchingResourcePatternResolver().getResources("classpath*:mybatis/mapper" +
+                    "/b/*.xml"));
             return bean.getObject();
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -42,7 +39,7 @@ public class DataSourceAConfig {
     }
 
     @Bean
-    public SqlSessionTemplate sqlSessionTemplateA(){
-        return new SqlSessionTemplate(sqlSessionFactoryA());
+    public SqlSessionTemplate sqlSessionTemplateB() {
+        return new SqlSessionTemplate(sqlSessionFactoryB());
     }
 }

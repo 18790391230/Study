@@ -5,9 +5,7 @@ import com.github.pagehelper.PageInfo;
 
 import java.util.List;
 
-/**
- * @author v_ymmwu
- */
+
 public class Pages<T> {
 
 
