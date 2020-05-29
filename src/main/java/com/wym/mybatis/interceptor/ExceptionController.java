@@ -29,7 +29,7 @@ public class ExceptionController {
         String code = null, msg = null;
         if (ex instanceof HttpRequestMethodNotSupportedException) {
             code = "405";
-            msg = MessageFormat.format("不支持当前请求方法，请使用[{}]方法请求",
+            msg = MessageFormat.format("不支持当前请求方法，请使用[{0}]方法请求",
                     Arrays.toString(((HttpRequestMethodNotSupportedException) ex).getSupportedMethods()));
         } else if (ex instanceof MethodArgumentNotValidException) {
             code = "400";

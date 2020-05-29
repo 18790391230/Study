@@ -1,4 +1,4 @@
-package com.wym.mybatis.config;
+package com.wym.common.datasourceconfig;
 
 import com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceBuilder;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.transaction.TransactionManager;
+//import org.springframework.transaction.TransactionManager;
 
 import javax.sql.DataSource;
 
@@ -46,7 +46,7 @@ public class DataSourceBConfig {
     }
 
     @Bean
-    public DataSourceTransactionManager managerA() {
+    public DataSourceTransactionManager managerB() {
         return new DataSourceTransactionManager(dataSourceB());
     }
 }

@@ -18,4 +18,6 @@ public class UserQueryParam {
 
     @NotNull(groups = {ICreate.class}, message = "name不能为空")
     private String name;
+
+    private Integer age;
 }

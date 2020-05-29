@@ -1,4 +1,4 @@
-package com.wym.mybatis.config;
+package com.wym.common.datasourceconfig;
 
 import com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceBuilder;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -47,7 +47,7 @@ public class DataSourceAConfig {
     }
 
     @Bean
-    public DataSourceTransactionManager managerB() {
+    public DataSourceTransactionManager managerA() {
         return new DataSourceTransactionManager(dataSourceA());
     }
 }

@@ -6,14 +6,17 @@ import com.wym.mybatis.model.User;
 import com.wym.mybatis.param.UserQueryParam;
 import com.wym.common.response.Response;
 import com.wym.mybatis.service.IUserService;
+import com.wym.mybatis.validate.ICreate;
 import com.wym.mybatis.validate.IQuery;
 import com.wym.mybatis.validate.IUpdate;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -62,4 +65,13 @@ public class UserController {
         return Response.ok(list, "");
     }
 
+    @ApiOperation(value = "新增用户")
+    @GetMapping("insertUser.do")
+    public Response<User> insertUser(@Validated(ICreate.class) UserQueryParam param) throws JsonProcessingException {
+        logger.info("insert thread id:{}", Thread.currentThread().getId());
+        User user = new User();
+        BeanUtils.copyProperties(param, user);
+        userService.insert(user);
+        return Response.ok(user, "");
+    }
 }

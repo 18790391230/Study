@@ -8,4 +8,6 @@ import java.util.List;
 public interface IUserService {
 
     List<User> getList();
+
+    void insert(User user);
 }
