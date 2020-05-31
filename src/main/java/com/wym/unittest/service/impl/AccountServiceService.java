@@ -1,6 +1,6 @@
 package com.wym.unittest.service.impl;
 
-import com.wym.unittest.model.Account;
+import com.wym.common.model.Account;
 import com.wym.unittest.service.IAccountService;
 import org.springframework.stereotype.Service;
 

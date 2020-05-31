@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.wym.mybatis.dao.b.IAccountMapper" >
-  <resultMap id="BaseResultMap" type="com.wym.mybatis.model.Account" >
+  <resultMap id="BaseResultMap" type="com.wym.common.model.Account" >
     <id column="id" property="id" jdbcType="INTEGER" />
     <result column="name" property="name" jdbcType="VARCHAR" />
     <result column="user_id" property="userId" jdbcType="INTEGER" />
@@ -20,13 +20,13 @@
     delete from t_account
     where id = #{id,jdbcType=INTEGER}
   </delete>
-  <insert id="insert" parameterType="com.wym.mybatis.model.Account" >
+  <insert id="insert" parameterType="com.wym.common.model.Account" >
     insert into t_account (id, name, user_id, 
       money)
     values (#{id,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{userId,jdbcType=INTEGER}, 
       #{money,jdbcType=DECIMAL})
   </insert>
-  <insert id="insertSelective" parameterType="com.wym.mybatis.model.Account" >
+  <insert id="insertSelective" parameterType="com.wym.common.model.Account" >
     insert into t_account
     <trim prefix="(" suffix=")" suffixOverrides="," >
       <if test="id != null" >
@@ -58,7 +58,7 @@
     </trim>
   </insert>
 
-  <update id="updateByPrimaryKeySelective" parameterType="com.wym.mybatis.model.Account" >
+  <update id="updateByPrimaryKeySelective" parameterType="com.wym.common.model.Account" >
     update t_account
     <set >
       <if test="name != null" >
@@ -73,7 +73,7 @@
     </set>
     where id = #{id,jdbcType=INTEGER}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.wym.mybatis.model.Account" >
+  <update id="updateByPrimaryKey" parameterType="com.wym.common.model.Account" >
     update t_account
     set name = #{name,jdbcType=VARCHAR},
       user_id = #{userId,jdbcType=INTEGER},

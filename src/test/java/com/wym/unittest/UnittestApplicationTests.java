@@ -1,7 +1,8 @@
 package com.wym.unittest;
 
-import com.wym.unittest.model.Account;
-import com.wym.unittest.model.User;
+
+import com.wym.common.model.Account;
+import com.wym.common.model.User;
 import com.wym.unittest.service.IAccountService;
 import com.wym.unittest.service.IThirdService;
 import com.wym.unittest.service.IUserService;

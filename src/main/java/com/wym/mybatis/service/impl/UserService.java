@@ -1,7 +1,7 @@
 package com.wym.mybatis.service.impl;
 
 import com.wym.mybatis.dao.a.IUserMapper;
-import com.wym.mybatis.model.User;
+import com.wym.common.model.User;
 import com.wym.mybatis.service.IUserService;
 import com.wym.mybatis.vo.Pages;
 import lombok.extern.slf4j.Slf4j;

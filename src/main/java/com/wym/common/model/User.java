@@ -1,6 +1,19 @@
-package com.wym.mybatis.model;
+package com.wym.common.model;
 
+import lombok.Builder;
+
+@Builder
 public class User {
+
+    public User() {
+    }
+
+    public User(Integer id, String name, Integer age) {
+        this.id = id;
+        this.name = name;
+        this.age = age;
+    }
+
     private Integer id;
 
     private String name;

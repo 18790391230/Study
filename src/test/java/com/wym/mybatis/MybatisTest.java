@@ -2,15 +2,12 @@ package com.wym.mybatis;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wym.mybatis.dao.a.IUserMapper;
 import com.wym.mybatis.dao.b.IAccountMapper;
-import com.wym.mybatis.model.Account;
-import com.wym.mybatis.model.User;
+import com.wym.common.model.User;
 import com.wym.mybatis.service.IUserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.util.Assert;
 
 import java.io.IOException;
 import java.text.MessageFormat;

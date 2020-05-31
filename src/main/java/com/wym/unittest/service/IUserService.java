@@ -1,6 +1,7 @@
 package com.wym.unittest.service;
 
-import com.wym.unittest.model.User;
+
+import com.wym.common.model.User;
 
 public interface IUserService {
 

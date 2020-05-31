@@ -1,6 +1,6 @@
 package com.wym.mybatis.service;
 
-import com.wym.mybatis.model.User;
+import com.wym.common.model.User;
 
 import java.util.List;
 

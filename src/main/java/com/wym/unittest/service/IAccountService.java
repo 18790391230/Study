@@ -1,6 +1,7 @@
 package com.wym.unittest.service;
 
-import com.wym.unittest.model.Account;
+
+import com.wym.common.model.Account;
 
 import java.util.List;
 

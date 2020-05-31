@@ -1,6 +1,6 @@
 package com.wym.mybatis.dao.b;
 
-import com.wym.mybatis.model.Account;
+import com.wym.common.model.Account;
 
 public interface IAccountMapper {
 

@@ -2,7 +2,7 @@ package com.wym.mybatis.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wym.mybatis.model.User;
+import com.wym.common.model.User;
 import com.wym.mybatis.param.UserQueryParam;
 import com.wym.common.response.Response;
 import com.wym.mybatis.service.IUserService;
