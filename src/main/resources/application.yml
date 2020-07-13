@@ -44,6 +44,16 @@ spring:
           maxOpenPreparedStatements: 20
   application:
     name: mybatistest
+  kafka:
+    bootstrap-servers: 192.168.11.100:9092,192.168.11.101:9092,192.168.11.102:9092
+    consumer:
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      group-id: test1
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
 #配置分页
 pagehelper:
   offset-as-page-num: true
