@@ -35,11 +35,13 @@
        
 
 2. **max.request.size**：限制生产者客户端能发送的消息最大值，默认为1M
-   - 不建议盲目更改，如果该值大于broker端的message.max.bytes，生产者投递消息时可能报异常
-
+   
+- 不建议盲目更改，如果该值大于broker端的message.max.bytes，生产者投递消息时可能报异常
+   
 3. **retries和retry.backoff.ms**：retries用来配置生产者的重试次数，默认为0。retry.backoff.ms默认100，用来设定两次重试的间隔，避免无效的频繁重试
-   - Kafka保证发送到同一个分区的数据是有序的。如果acks配置非0，并且max.flight.requests.per. connection参数配置的值大于1，会出现消息错序的情况：如果第一个消息写入失败，第二个消息写入成功，那么生产者重发第一个消息，如果发送成功，则消息错序
-
+   
+- Kafka保证发送到同一个分区的数据是有序的。如果acks配置非0，并且max.flight.requests.per. connection参数配置的值大于1，会出现消息错序的情况：如果第一个消息写入失败，第二个消息写入成功，那么生产者重发第一个消息，如果发送成功，则消息错序
+   
 4. **compression.type**：指定消息压缩方式，默认为none。以时间换空间的方式
 5. **connections.max.idle.ms**：指定多久之后关闭限制的连接，默认540000ms，即9min
 6. **linger.ms**：指定生产者发送ProducerBatch之前等待更多的消息（ProducerRecord）加入ProducerBatch的时间，默认为0。生产者客户端会在ProducerBatch被填满或linger.ms时间到达后将消息发送出去。这个参数增加了消息的延时，但是也提升了一定的吞吐量。与Nagle有异曲同工之妙
@@ -139,3 +141,128 @@ public class ConsumerInterceptorTTL implements ConsumerInterceptor<String, Strin
 
 1. 如果消费者在消费完消息后进行提交，但是在消息的消费过程中出现异常，异常恢复后，重新拉取的消息会包含重复消息
 2. 消费者A消费完某个分区的一部分消息还没来得及提交消费位移时，发生rebalance，之后这个分区被分配给这个消费者组的另外一个消费者，另外一个消费者消费时会重复消费消费者A之前已经消费而未提交的消息（可以通过添加ConsumerRebalanceListener监听器，在rebalance发生前提交消费位移来解决）
+
+
+
+### 控制器
+
+在kafka集群中会有一个或多个broker，其中一个broker会被选举为控制器。依赖zk，在/controller下创建临时节点，创建成功，则成为leader，即控制器。创建失败的broker会保存leader的brokerid
+
+它负责管理整个集群和副本的状态，当某个分区的leader副本出现故障时，由控制器为该分区选举出新的leader副本
+
+当检测到某个分区的ISR集合发生变化时，控制器负责通知所有的broker更新其元数据信息
+
+/controller_epoch：控制器纪元，持久化节点，每个和控制器交互的请求都会携带controller_epoch，
+
+### 分区leader选举
+
+分区leader副本选举有控制器负责具体实施
+
+当创建分区（创建主题和增加分区都有创建分区的动作）或分区上线（原来的leader副本下线，此时分区需要选举出一个新的leader上线对外提供服务）时都需要执行leader选举。
+
+**选举策略**：按照AR集合中副本的顺序查找第一个存活的副本，并且这个副本在ISR集合中（只要不发生重分配的情况，集合内部副本的顺序是保持不变的，而分区的ISR中副本的顺序可能会改变）。
+
+
+
+### 参数解密
+
+1. **broker.id**：broker启动前必须配置的参数之一，在kafka集群中，每个broker都有一个唯一的brokerid区分彼此。broker启动时会在zk的/brokers/ids路径下创建一个以当前brokerId为名称的临时节点，其他broker或客户端通过判断路径下是否有此broker的brokerId节点来确定该broker的健康状态。
+
+2. **bootstrap.servers**：是kafka producer、kafka consumer的必备参数；在kafka connect，streams，KafkaAdminClient也有涉及。
+
+   - 这个参数配置的是用来发现Kafka集群元数据信息的服务地址
+
+     客户端与Kafka集群连接需要经历3个过程
+
+     - 客户端根据**bootstrap.servers**指定的Server连接，并发送**MetadataRequest**请求来获取集群的元数据信息
+     - Server在收到请求后，返回**MetadataResponse**给客户端（包含了集群的元数据信息）
+     - 客户端收到**MetadataResponse**后解析其中的元数据信息，然后与集群中的各个节点建立连接，之后就可以发送消息了
+
+
+
+### 分区分配策略
+
+1. **RangeAssignor**：范围分配。假设n=分区数/消费者数量，m=分区数%消费者数量，那么前m个消费者每个分配n+1个分区，后面的每个消费者分配n个分区。可能导致分配不均匀，比如：2个消费者消费2个主题，每个主题3个分区时，第一个消费者消费4个分区，第二个消费者消费2个分区，导致第一个消费者过载。
+
+2. **RoundRbinAssignor**：将消费组内所有消费者及消费者订阅的所有主题的分区按照字典序排序，通过轮训逐个将分区分配给每个消费者（也可能会导致分配不均匀）
+
+   ![image-20200711161258267](Kafka.assets/image-20200711161258267.png)
+
+3. **StickyAssignor**：分区的分配尽可能均匀。分区的分配尽可能与上次的分配保持相同。当两者发生冲突时，第一个目标优先于第二个目标。
+
+### 幂等
+
+enable.idempotence设置为true
+
+Kafka引入producer_id（PID）和序列号（sequencenumber）两个概念实现生产者幂等性。
+
+每个生产者实例在初始化时都会被分配一个PID，这个PID对用户而言是透明的。对于每个PID，消息发送到每一个分区时都有对应的序列号，这些序列号从0开始单调递增。生产者每发送一条消息，就会将<PID, 分区>对应的序列号加1。
+
+broker端会在内存中维护每一对<PID, 分区>维护一个序列号。对于收到的每一条消息，只有当它的序列号（SN_new）比broker端维护的序列号的值（SN_old）大1时，broker才会接收它。如果SN_new<SN_old+1，说明消息被重复写入，broker可以直接将其丢弃。SN_new > SN_old+1，说明中间有数据尚未写入，出现了乱序，可能有数据丢失，对应的生产者会抛出OutOfOrderSequenceException。
+
+**Kafka的幂等只能保证单个生产者会话中单分区的幂等**。
+
+## 可靠性探究
+
+### 副本剖析
+
+* 副本是相对于分区而言的，副本即是特定分区的副本
+
+* 一个分区中包含一个或多个副本，其中一个是Leader副本，其他的是Follower副本，各副本位于不同的broker节点中。只有Leader副本对外提供服务，Follower副本只负责数据同步
+
+* 分区中的所有副本统称为AR，ISR是指与leader副本保持同步状态的副本集合，leader副本本身也是ISR集合中的一员
+
+* LEO标识每个分区中最后一条消息的下一个位置，分区中的每个副本都有自己的LEO，ISR集合中最小的LEO即为HW（高水位），消费者只能拉取到HW之前的消息
+
+  从生产者发出的一条消息首先会写入分区的leader副本，不过还需要等到ISR集合中的所有follower副本都同步完之后才能认为是已提交，之后才会去更新HW，进而消费者才可以消费到这条消息
+
+#### 失效副本
+
+正常情况下，分区的所有副本都处于ISR集合中，当发生异常情况时，异常副本会被剥离出ISR集合。在ISR集合之外，也就是处于同步失效或功能失效（宕机）的副本统称为失效副本，失效副本对应的分区被称为同步失效分区。
+
+**判定标准**：当ISR集合中的一个follower副本超过replica.lag.time.max.ms（默认10s）未追上leader，则认为同步时效，被剔除出ISR。当follower副本将leader副本的LEO之前的日志全部同步时，认为follower副本已经追上leader副本，此时更新该副本的lastCaughtUpTimeMs。
+
+**实现原理**：Kafka副本管理器会启动一个副本过期检测的定时任务，定时检查当前时间与lastCaughtUpTimeMs是否大于replica.lag.time.max.ms。
+
+#### ISR的伸缩
+
+##### 缩容
+
+Kafka在启动时会开启2个和ISR相关的定时任务。isr-expiration任务定时检测每个分区是否需要缩减其ISR集合，周期是replica.lag.time.max.ms/2。当检测到ISR集合中有失效副本时，收缩ISR集合。如果某个分区的ISR集合发生变更，会将变更记录到zk的/brokers/topics/< topic>/partition/< partition>/state节点中。节点数据示例如下
+
+```json
+{ "controller_epoch": 26, "leader": 0, "version": 1, "leader_epoch" :2, "isr": [0, l]}
+//当前kafka控制器的epoch ，   当前分区leader副本所在brokerid              变化后的ISR列表
+```
+
+除此之外，当ISR集合发生变更时还会将变更后的记录缓存到isrChangSet中，isr-change-propagation定时任务会定时检查isrChangeSet（固定为2500ms），如果发现isrChangeSet中有ISR集合的变更记录，那么会在zk的 /isr_change_notification路径下创建以isr_change_开头的顺序持久节点。Kafka控制器为isr_change_notification添加了一个Watcher，当这个节点中有子节点变化时会触发Watcher动作，通知控制器更新相关元数据信息并向它管理的broker节点发送更新元数据的请求，最后删除路径下已被处理的节点。频繁触发Watcher会影响性能，当检测到ISR集合发生变化时，Kafka还会检查以下2个条件：1.上一次ISR集合发生变化距离现在已经超过5s。2.上一次写入zk的时间举例现在已经超过60s。满足上面条件任意一个才可以将ISR集合的变化写入目标节点。
+
+##### 扩容
+
+当follower副本的LEO不小于Leader副本的HW，就认为follower追上了leader。扩容同样会更新zk的/brokers/topics/< topic>/partition/< partition>/state节点和isrChangeSet，之后的步骤和缩容相同。
+
+#### LEO与HW
+
+假设某个分区有3个副本，分别位于broker0,1,2节点中，broker1是leader副本，消息追加过程如下
+
+1. 生产者客户端发送消息到leader副本
+
+2. 消息被追加到leader副本的本地日志，并更新日志的偏移量
+
+3. follower副本向leader副本请求同步数据（follower副本的请求数据中包含自身的LEO）
+
+4. leader副本读取本地日志，并更新对应拉取的follower副本的信息（更新自身保存的对应follower副本的LEO）
+
+5. leader副本将拉取结果返回给follower副本（返回数据中包含消息数据及leader自身的HW）
+
+6. follower副本收到leader副本返回的拉取结果，将消息追加到本地日志，并更新日志偏移量信息（更新自身LEO，与leader返回的HW对比，选一个较小的作为自身的HW）
+
+   ![image-20200711200442851](Kafka.assets/image-20200711200442851.png)
+
+   
+
+LEO和HW在各副本中的维护情况
+
+![image-20200711201120034](Kafka.assets/image-20200711201120034.png)
+
+leader副本除了维护自身的LEO和HW外，还维护所有follower副本的LEO。follower副本仅维护自身的LEO及HW。
