@@ -3,7 +3,7 @@ package com.wym.juc.task;
 import java.util.concurrent.Semaphore;
 
 /**
- * @author v_ymmwu
+ *
  */
 public class SemaphoreTest {
 

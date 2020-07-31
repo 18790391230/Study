@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 /**
- * @author v_ymmwu
+ *
  */
 public class WeakHashMapTest {
 
