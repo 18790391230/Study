@@ -7,7 +7,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @author v_ymmwu
+ *
  */
 public class ProducerConsumerTest {
 
