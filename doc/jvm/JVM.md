@@ -548,4 +548,49 @@ CMS(Concurrent Mark Sweep)收集器是一种以获取 **最短回收停顿时间
     > -Xloggc:gc.log  
 
 * gcviewer：分析GC日志
+  
   * java -jar gcviewer-1.36-SNAPSHOT.jar D:\BaiduNetdiskDownload\gp-jvm\gc.log
+
+
+
+#### java.lang.StackOverflowError
+
+* 递归（VirtualMachineError）
+
+
+
+#### java.lang.OutOfMemoryError:Java heap space
+
+* 堆内存不够用了（VirtualMachineError）
+
+#### java.lang.OutOfMemoryError:GC overhead limit exceeded
+
+* GC回收时间过长。超过98%的时间用来做GC并且回收了不到2%的堆内存，连续多次这种情况才会抛出这个异常
+* 如果不抛出这个异常，空闲的空间会很快被填满，这样会造成恶性循环，CPU使用率过高，GC却没有任何成果
+
+
+
+#### java.lang.OutOfMemoryError:Direct buffer memory
+
+
+
+#### java.lang.OutOfMemoryError:unable to create new native thread
+
+
+
+#### java.lang.OutOfMemoryError:Metaspace
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

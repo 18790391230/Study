@@ -4,7 +4,7 @@ import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 
 /**
- * @author v_ymmwu
+ *
  */
 public class CountDownLatchTest {
 

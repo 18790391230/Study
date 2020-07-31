@@ -1,7 +1,7 @@
 package com.wym.asynctest.service;
 
 /**
- * @author v_ymmwu
+ *
  */
 public interface IAsyncServiceA {
 

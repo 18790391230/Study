@@ -8,7 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.io.IOException;
 
 /**
- * @author v_ymmwu
+ *
  */
 @SpringBootTest
 public class AsyncTest {

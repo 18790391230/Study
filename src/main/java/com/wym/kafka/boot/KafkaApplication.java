@@ -9,7 +9,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import java.io.IOException;
 
 /**
- * @author v_ymmwu
+ *
  */
 @SpringBootApplication(exclude = {DruidDataSourceAutoConfigure.class, DataSourceAutoConfiguration.class})
 public class KafkaApplication {

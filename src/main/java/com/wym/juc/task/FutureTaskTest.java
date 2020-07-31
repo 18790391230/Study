@@ -4,7 +4,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
 /**
- * @author v_ymmwu
+ *
  */
 public class FutureTaskTest {
 

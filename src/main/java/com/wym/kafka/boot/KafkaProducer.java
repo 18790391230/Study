@@ -5,7 +5,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 /**
- * @author v_ymmwu
+ *
  */
 @Component
 public class KafkaProducer {

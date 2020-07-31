@@ -10,7 +10,7 @@ import org.springframework.aop.aspectj.MethodInvocationProceedingJoinPoint;
 import org.springframework.stereotype.Component;
 
 /**
- * @author v_ymmwu
+ *
  */
 @Component
 @Aspect

@@ -5,7 +5,7 @@ import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 
 /**
- * @author v_ymmwu
+ *
  */
 public class CyclicBarrierTest {
 

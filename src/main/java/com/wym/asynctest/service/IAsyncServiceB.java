@@ -6,7 +6,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
 /**
- * @author v_ymmwu
+ *
  */
 public interface IAsyncServiceB {
 

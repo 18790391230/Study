@@ -7,7 +7,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 /**
- * @author v_ymmwu
+ *
  */
 @EnableAsync
 @EnableAspectJAutoProxy
