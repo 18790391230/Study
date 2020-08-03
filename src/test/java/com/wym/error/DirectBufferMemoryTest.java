@@ -15,6 +15,6 @@ public class DirectBufferMemoryTest {
 
         System.out.println("配置的DirectMemorySize是：" + sun.misc.VM.maxDirectMemory() / 1024.0 / 1024 + "MB");
         Thread.sleep(1000);
-        ByteBuffer allocate = ByteBuffer.allocate(6 * 1024 * 1024);
+        ByteBuffer allocate = ByteBuffer.allocateDirect(6 * 1024 * 1024);
     }
 }

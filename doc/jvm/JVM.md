@@ -304,7 +304,7 @@ Parallel Scavenge收集器的老年代版本，采用**标记整理**算法
 
 CMS(Concurrent Mark Sweep)收集器是一种以获取 **最短回收停顿时间** 为目标的老年代收集器。
 
-采用**标记整理**算法，分为4步：
+采用**标记清理**算法，分为4步：
 
 > （1）初始标记：标记GC Roots能**直接关联**的对象，速度很快  STW
 >
@@ -553,34 +553,61 @@ CMS(Concurrent Mark Sweep)收集器是一种以获取 **最短回收停顿时间
 
 
 
-#### java.lang.StackOverflowError
+#### java.lang.StackOverflowError(Error)
 
 * 递归（VirtualMachineError）
 
 
 
-#### java.lang.OutOfMemoryError:Java heap space
+#### java.lang.OutOfMemoryError:Java heap space(Error)
 
 * 堆内存不够用了（VirtualMachineError）
 
-#### java.lang.OutOfMemoryError:GC overhead limit exceeded
+#### java.lang.OutOfMemoryError:GC overhead limit exceeded(Error)
 
 * GC回收时间过长。超过98%的时间用来做GC并且回收了不到2%的堆内存，连续多次这种情况才会抛出这个异常
 * 如果不抛出这个异常，空闲的空间会很快被填满，这样会造成恶性循环，CPU使用率过高，GC却没有任何成果
 
 
 
-#### java.lang.OutOfMemoryError:Direct buffer memory
+#### java.lang.OutOfMemoryError:Direct buffer memory(Error)
 
+* 直接内存分配失败（可能是NIO操作忘记释放空间）
 
+#### java.lang.OutOfMemoryError:unable to create new native thread(Error)
 
-#### java.lang.OutOfMemoryError:unable to create new native thread
+* 不能创建一个线程
 
+  * 可能是由于硬件资源及操作系统句柄限制
+  * 也可能是因为系统不允许该应用创建过多线程
 
+* 查看当前用户可以创建的线程数：
 
-#### java.lang.OutOfMemoryError:Metaspace
+  ```shell
+  ulimit -u  #查看
+  cat /etc/security/limits.d/20-nproc.conf   #编辑
+  ```
 
+#### java.lang.OutOfMemoryError:Metaspace(Error)
 
+* 元数据空间不足
+
+  ```java
+  while (true) {
+      i++;
+      Enhancer enhancer = new Enhancer();
+      enhancer.setSuperclass(MetaspaceOOMTest.class);
+      enhancer.setUseCache(false);    //不使用缓存
+      enhancer.setCallback(new MethodInterceptor() {
+          @Override
+          public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
+              return methodProxy.invokeSuper(o, objects);
+          }
+      });
+  
+      enhancer.create();
+  }
+  ```
 
 
 

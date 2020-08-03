@@ -5,6 +5,8 @@ import java.util.List;
 
 /**
  *-XX:MaxDirectMemorySize=5M -XX:+PrintGCDetails -Xms=10M -Xmx=10M
+ *
+ * Exception in thread "main" java.lang.OutOfMemoryError: GC overhead limit exceeded
  */
 public class OverheadLimitExceededTest {
 
