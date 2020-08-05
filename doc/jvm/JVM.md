@@ -150,7 +150,7 @@ Java对象实例以及数组都在堆上分配
 
 ### 堆内存
 
-![image-20200727145836549](C:\Users\v_ymmwu\Desktop\doc\jvm\JVM.assets\image-20200727145836549.png)
+![image-20200727145836549](.\JVM.assets\image-20200727145836549.png)
 
 
 
