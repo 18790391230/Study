@@ -1380,21 +1380,19 @@ HTTPS和HTTP的区别主要为以下四点：
 
 > jconsole、jvisualvm、arthas、psi-probe等
 
-优化思路
+##### 11.1 优化思路
 
-#### 11.1 conf/server.xml核心组件
+##### 11.1.1 conf/server.xml核心组件
 
 Connector和Context可以优化，其他的不需要优化
 
-#### 11.2 conf/server.xml非核心组件
+##### 11.1.2 conf/server.xml非核心组件
 
-#### 11.3全局的web.xml文件有些标签用不到的，可以删除掉
+##### 11.1.3 全局的web.xml文件有些标签用不到的，可以删除掉
 
-#### 11.4 JVM层面
+##### 11.1.4 JVM层面
 
 因为Tomcat运行起来本身就是一个Java进程，所以这块可以参照JVM部分的优化思路
-
-
 
 #### 11.2 配置优化
 
