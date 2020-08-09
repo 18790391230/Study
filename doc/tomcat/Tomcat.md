@@ -282,7 +282,26 @@ Tomcat不会在启动Web应用时自动编译jsp文件，而是在客户端第�
 </html>
 ```
 
+**引入依赖**
 
+```xml
+ <dependencies>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.0.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>jsp-api</artifactId>
+            <version>2.0</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+```
+
+**WEB-INF下新建lib文件夹，添加jstl.jar, standard.jar**
 
 ##### 4.2.2 编译过程
 
