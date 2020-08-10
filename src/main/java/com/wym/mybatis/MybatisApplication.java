@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 
 @EnableAsync
 @SpringBootApplication
-@ComponentScan(basePackages = "com.wym.common.datasourceconfig", basePackageClasses = MybatisApplication.class)
+@ComponentScan(basePackages = {"com.wym.common.datasourceconfig"}, basePackageClasses = MybatisApplication.class)
 public class MybatisApplication {
 
     public static void main(String[] args) {

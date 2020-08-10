@@ -45,6 +45,16 @@ public class UserController {
         return s;
     }
 
+    @ApiOperation(value = "获取用户")
+    @GetMapping("getUsers.do")
+    public String getUser() throws JsonProcessingException {
+//        List<User> list = userService.getList();
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        String s = objectMapper.writeValueAsString(list);
+//        logger.info(s);
+        return "Success";
+    }
+
     @ApiOperation(value = "更新用户")
     @PostMapping("updateUser.do")
     public String updateUser(@RequestBody @Validated(IUpdate.class) UserQueryParam param) throws JsonProcessingException {
