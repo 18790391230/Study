@@ -204,33 +204,6 @@ replicationCron()每1s执行一次，检测主从连接是否超时，定时向�
 
 
 
-slaveof
-
-1. 连接socket
-2. 发送PING请求包确认连接是否正确
-3. 发起密码认证（如果需要）
-4. 通过REPLCONF 同步信息（发送自己监听的port和ip，用于master主动建立socket连接，向slave同步数据；redis的主从复制功能进行过升级，不同redis版本能力可能不同，所以slave需要通知master自己支持的主从复制能力（REPLCONF capa <capability>））并接收master的回复
-5. 发送PSYNC命令
-6. 接收RDB并载入
-7. 连接建立完成，等待master同步命令请求
-
-REPLCONF capa eof capa psync2 中eof表示在master接收到psync命令时，如果必须执行完整重同步，不会将RDB文件写入磁盘，而是直接将RDB文件发送给slave，减去了本地磁盘不必要的读写操作；psync2是4.0后支持的，使得主从切换后依然有可能执行部分重同步，当master接收到psync时，会返回给slave    CONTINUE <new_repl_id>
-
-
-
-4. 将slave请求参数记录到client结构体；记录slave的ip和port，slave capa能力标识，slave复制偏移量和交互时间
-
-5. 如果可以执行部分重同步，返回+CONTINUE（如果是支持psync2，返回CONTINUE <new_repl_id>），并返回复制缓冲区的命令请求，同时更新有效slave服务器数目。如果要执行完整重同步，会fork子进程执行RDB持久化，并将持久化数据发送给slave，有2中选择，1.直接通过socket发送给slave；2.持久化到本地文件，再将文件发送给slave
-
-   重同步的条件：
-
-   * 服务器运行ID与复制偏移量必须合法
-   * 复制偏移量必须包含在复制缓冲区中
-
-repl_diskless-sync默认为0，即默认情况下都是先持久化数据到文件，再将文件发送给slave
-
-6. 所有的流程执行完成后，master每次接收到写请求时，都会将该命令添加到复制缓冲区并广播给所有slave，
-
 
 
 repl-ping-replica-period默认为10，master向slave发送心跳包
