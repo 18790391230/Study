@@ -214,3 +214,245 @@ repl_min_slaves_to_write：有效slave小于这个值时，master拒绝执行写
 
 slave-read-only：slave只读，默认1
 
+
+
+
+
+### Cluster
+
+
+
+
+
+#### 故障恢复
+
+注意：只有master节点具有节点状态判断和参与leader选举的资格。同时redis集群中的cluster_size指的也是master的个数。
+
+分为3部分
+
+1. 故障发现
+
+   PFail与Fail：redis节点每秒随机向其他节点发送一次PING，如果node_timeout/2时间内没有收到回复，会重新连接节点，如果连接超时，会将node状态更新为PFail，如果超过半数的master都标记这个节点为PFail，就更新这个节点的状态为Fail，向集群中所有节点发送Fail的这个节点的名字，强制其他节点将此节点状态更改为Fail
+
+   ```c
+    while((de = dictNext(di)) != NULL) {
+           clusterNode *node = dictGetVal(de);
+           now = mstime(); /* Use an updated time at every iteration. */
+           mstime_t delay;
+   
+           // 当我们已经与对方节点建立了连接，同时我们向对方节点发送了PING命令，如果对方超时未回复
+           // 有可能时当前节点与对方节点的连接出了问题，所以就重新建立连接
+           if (node->link && /* is connected */
+               now - node->link->ctime >
+               server.cluster_node_timeout && /* was not already reconnected */
+               node->ping_sent && /* we already sent a ping */
+               node->pong_received < node->ping_sent && /* still waiting pong */
+               /* and we are waiting for the pong more than timeout/2 */
+               now - node->ping_sent > server.cluster_node_timeout/2)
+           {
+               /* 释放掉node->link,此时node->link=NULL， 这个结论在下面的链接重新建立会有用到. */
+               freeClusterLink(node->link);
+           }
+       }
+   ```
+
+   ```c
+   //PING失败，重新连接
+   if (node->link == NULL) {
+               clusterLink *link = createClusterLink(node);
+               link->conn = server.tls_cluster ? connCreateTLS() : connCreateSocket();
+               connSetPrivateData(link->conn, link);
+               // 尝试再次建立连接
+               if (connConnect(link->conn, node->ip, node->cport, NET_FIRST_BIND_ADDR,
+                           clusterLinkConnectHandler) == -1) {
+                   // 当建立连接失败时，记录连接建立失败的时刻
+                   if (node->ping_sent == 0) node->ping_sent = mstime();
+                   serverLog(LL_DEBUG, "Unable to connect to "
+                       "Cluster Node [%s]:%d -> %s", node->ip,
+                       node->cport, server.neterr);
+   
+                   freeClusterLink(link);
+                   continue;
+               }
+               node->link = link;
+           }
+   ```
+
+   标记为PFail
+
+   ```c
+    while((de = dictNext(di)) != NULL) {
+           clusterNode *node = dictGetVal(de);
+           now = mstime(); /* Use an updated time at every iteration. */
+           mstime_t delay;
+           // 计算节点3断连时间
+           delay = now - node->ping_sent;
+           // 如果节点3断连时间超过cluster_node_timeout， 则标记节点3为PFAIL
+           if (delay > server.cluster_node_timeout) {
+                   node->flags |= CLUSTER_NODE_PFAIL;
+                   update_state = 1;
+               }
+           }
+       }
+   ```
+
+   ```c
+   void clusterProcessGossipSection(clusterMsg *hdr, clusterLink *link) {
+       // 获取该条消息包含的节点数信息
+       uint16_t count = ntohs(hdr->count);
+       // clusterMsgDataGossip数组的地址
+       clusterMsgDataGossip *g = (clusterMsgDataGossip*) hdr->data.ping.gossip;
+       // 发送消息的节点
+       clusterNode *sender = link->node ? link->node : clusterLookupNode(hdr->sender);
+   
+       // 遍历所有节点的信息
+       while(count--) {
+           // 获取节点的标识信息
+           uint16_t flags = ntohs(g->flags);
+           clusterNode *node;
+   
+           // 根据指定name从集群中查找并返回节点
+           node = clusterLookupNode(g->nodename);
+           // 如果node存在
+           if (node) {
+               // 如果发送者是主节点，且不是node本身
+               if (sender && nodeIsMaster(sender) && node != myself) {
+                   // 如果标识中指定了关于下线的状态
+                   if (flags & (CLUSTER_NODE_FAIL|CLUSTER_NODE_PFAIL)) {
+                       // 将sender的添加到node的故障报告中
+                       if (clusterNodeAddFailureReport(node,sender)) {
+                           serverLog(LL_VERBOSE,
+                               "Node %.40s reported node %.40s as not reachable.",
+                               sender->name, node->name);
+                       }
+                       // 判断node节点是否处于真正的下线FAIL状态
+                       markNodeAsFailingIfNeeded(node);
+                   // 如果标识表示节点处于正常状态
+                   }else {
+                       if (clusterNodeDelFailureReport(node,sender)) {
+                           serverLog(LL_VERBOSE,
+                               "Node %.40s reported node %.40s is back online.",
+                               sender->name, node->name);
+                       }
+                   }
+               }
+       }
+   }
+   ```
+
+   标记Fail状态
+
+   ```c
+   void markNodeAsFailingIfNeeded(clusterNode *node) {
+       int failures;
+       // 需要大多数的票数，超过一半的节点数量
+       int needed_quorum = (server.cluster->size / 2) + 1;
+       // 不处于pfail（需要确认是否故障）状态，则直接返回
+       if (!nodeTimedOut(node)) return; /* We can reach it. */
+       // 处于fail（已确认为故障）状态，则直接返回
+       if (nodeFailed(node)) return; /* Already FAILing. */
+       // 返回认为node节点下线（标记为 PFAIL or FAIL 状态）的其他节点数量
+       failures = clusterNodeFailureReportsCount(node);
+       // 如果当前节点是主节点，也投一票
+       if (nodeIsMaster(myself)) failures++;
+       // 如果报告node故障的节点数量不够总数的一半，无法判定node是否下线，直接返回
+       if (failures < needed_quorum) return; /* No weak agreement from masters. */
+   
+       serverLog(LL_NOTICE, "Marking node %.40s as failing (quorum reached).", node->name);
+   
+       // 取消PFAIL，设置为FAIL
+       node->flags &= ~CLUSTER_NODE_PFAIL;
+       node->flags |= CLUSTER_NODE_FAIL;
+       // 并设置下线时间
+       node->fail_time = mstime();
+   
+       // 广播下线节点的名字给所有的节点，强制所有的其他可达的节点为该节点设置FAIL标识
+       if (nodeIsMaster(myself)) clusterSendFail(node->name);
+       clusterDoBeforeSleep(CLUSTER_TODO_UPDATE_STATE|CLUSTER_TODO_SAVE_CONFIG);
+   }
+   ```
+
+   
+
+2. leader选举
+
+3. 配置更新
+
+
+
+
+
+```c
+typedef struct clusterNodeFailReport {
+    struct clusterNode *node;  /* Node reporting the failure condition. */
+    mstime_t time;             /* Time of the last report from this node. */
+} clusterNodeFailReport;
+
+typedef struct clusterNode {
+    mstime_t ctime; /* Node object creation time. */
+    char name[CLUSTER_NAMELEN]; /* Node name, hex string, sha1-size */
+    int flags;      /* CLUSTER_NODE_... */
+    uint64_t configEpoch; /* Last configEpoch observed for this node */
+    unsigned char slots[CLUSTER_SLOTS/8]; /* slots handled by this node */
+    int numslots;   /* Number of slots handled by this node */
+    int numslaves;  /* Number of slave nodes, if this is a master */
+    struct clusterNode **slaves; /* pointers to slave nodes */
+    struct clusterNode *slaveof; /* pointer to the master node. Note that it
+                                    may be NULL even if the node is a slave
+                                    if we don't have the master node in our
+                                    tables. */
+    mstime_t ping_sent;      /* Unix time we sent latest ping */
+    mstime_t pong_received;  /* Unix time we received the pong */
+    mstime_t fail_time;      /* Unix time when FAIL flag was set */
+    mstime_t voted_time;     /* Last time we voted for a slave of this master */
+    mstime_t repl_offset_time;  /* Unix time we received offset for this node */
+    mstime_t orphaned_time;     /* Starting time of orphaned master condition */
+    long long repl_offset;      /* Last known repl offset for this node. */
+    char ip[NET_IP_STR_LEN];  /* Latest known IP address of this node */
+    int port;                   /* Latest known clients port of this node */
+    int cport;                  /* Latest known cluster port of this node. */
+    clusterLink *link;          /* TCP/IP link with this node */
+    list *fail_reports;         /* List of nodes signaling this as failing */
+} clusterNode;
+
+typedef struct clusterState {
+    clusterNode *myself;  /* This node */
+    uint64_t currentEpoch;
+    int state;            /* CLUSTER_OK, CLUSTER_FAIL, ... */
+    int size;             /* Num of master nodes with at least one slot */
+    dict *nodes;          /* Hash table of name -> clusterNode structures */
+    dict *nodes_black_list; /* Nodes we don't re-add for a few seconds. */
+    clusterNode *migrating_slots_to[CLUSTER_SLOTS];
+    clusterNode *importing_slots_from[CLUSTER_SLOTS];
+    clusterNode *slots[CLUSTER_SLOTS];
+    uint64_t slots_keys_count[CLUSTER_SLOTS];
+    rax *slots_to_keys;
+    /* The following fields are used to take the slave state on elections. */
+    mstime_t failover_auth_time; /* Time of previous or next election. */
+    int failover_auth_count;    /* Number of votes received so far. */
+    int failover_auth_sent;     /* True if we already asked for votes. */
+    int failover_auth_rank;     /* This slave rank for current auth request. */
+    uint64_t failover_auth_epoch; /* Epoch of the current election. */
+    int cant_failover_reason;   /* Why a slave is currently not able to
+                                   failover. See the CANT_FAILOVER_* macros. */
+    /* Manual failover state in common. */
+    mstime_t mf_end;            /* Manual failover time limit (ms unixtime).
+                                   It is zero if there is no MF in progress. */
+    /* Manual failover state of master. */
+    clusterNode *mf_slave;      /* Slave performing the manual failover. */
+    /* Manual failover state of slave. */
+    long long mf_master_offset; /* Master offset the slave needs to start MF
+                                   or zero if stil not received. */
+    int mf_can_start;           /* If non-zero signal that the manual failover
+                                   can start requesting masters vote. */
+    /* The followign fields are used by masters to take state on elections. */
+    uint64_t lastVoteEpoch;     /* Epoch of the last vote granted. */
+    int todo_before_sleep; /* Things to do in clusterBeforeSleep(). */
+    /* Messages received and sent by type. */
+    long long stats_bus_messages_sent[CLUSTERMSG_TYPE_COUNT];
+    long long stats_bus_messages_received[CLUSTERMSG_TYPE_COUNT];
+    long long stats_pfail_nodes;    /* Number of nodes in PFAIL status,
+                                       excluding nodes without address. */
+} clusterState;
+```
+
