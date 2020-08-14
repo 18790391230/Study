@@ -376,9 +376,55 @@ slave-read-only：slave只读，默认1
 
 2. leader选举
 
+   当slave收到对应master下线的Fail广播时，发送*CLUSTERMSG_TYPE_FAILOVER_AUTH_REQUEST*到集群中所有的节点，当收到过半的其他master节点的*FAILOVER_AUTH_ACK*回应后，自己成为leader，开始执行failover
+
+   选举算法采用raft，在拉选票之前先休眠一段时间：
+
+   > ```text
+   > DELAY = 500 milliseconds + random delay between 0 and 500 milliseconds + SLAVE_RANK * 1000 milliseconds.
+   > ```
+   >
+   > 前面的500ms是为了确保所有的node都接收到了fail消息，SLAVE_RANK是根据slave同步master的offset计算的，offset越大，SLAVE_RANK越小，也就越小醒来拉选票
+
+   集群中的master接收到拉选票消息后会判断这个slave是否有资格成为leader
+
+   ```c
+    /* 计算与Master节点上次通信过去的时间*/
+       if (server.repl_state == REPL_STATE_CONNECTED) {
+           data_age = (mstime_t)(server.unixtime - server.master->lastinteraction)
+                      * 1000;
+       } else {
+           data_age = (mstime_t)(server.unixtime - server.repl_down_since) * 1000;
+       }
+       if (data_age >server.repl_ping_slave_period * 1000+
+           (server.cluster_node_timeout * server.cluster_slave_validity_factor)){
+           该节点不具备参与竞选资格
+       }
+   ```
+
+   ```c
+    // 发现自己获得了超过半数的集群节点的投票
+       if (server.cluster->failover_auth_count >= needed_quorum) {
+           serverLog(LL_WARNING,"Failover election won: I'm the new master.");
+   
+           if (myself->configEpoch < server.cluster->failover_auth_epoch) {
+               myself->configEpoch = server.cluster->failover_auth_epoch;
+               serverLog(LL_WARNING,
+                   "configEpoch set to %llu after successful failover",
+                   (unsigned long long) myself->configEpoch);
+           }
+           // 执行自动或手动故障转移，从节点获取其主节点的哈希槽，并传播新配置
+           clusterFailoverReplaceYourMaster();
+       } else {
+           clusterLogCantFailover(CLUSTER_CANT_FAILOVER_WAITING_VOTES);
+       }
+   ```
+
+   
+
 3. 配置更新
 
-
+一旦有从节点赢得选举，就会通过PING和PONG数据包向其他节点宣布自己是master，发送自己负责的槽位，设置configEpoch为currentEpoch（选举开始时生成的），为了加速配置更新，该节点会发送PONG包到集群所有节点，其他节点发送有新的节点（带着更大的Epoch）负责处理之前的一个旧的master负责的slots，会更新自己的配置
 
 
 
