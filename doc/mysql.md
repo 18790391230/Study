@@ -70,3 +70,25 @@ INSTALL PLUGIN rpl_semi_sync_master SONAME 'semisync_master.so'
 
 
 
+#### count的优化
+
+1. MyISAM中如果使用不带where条件的count()，则可以直接获取行数，因为引擎自身缓存了行数
+2. 如果想查询所有行数，则最好使用count(*)，这样可以优化性能；如果MySQL知道某列不可能为Null，MySQL内部会将count(col)转换为count(**)
+3. 反向查询，比如查询ID大于5的城市的个数，可以将select * from city where id > 5优化为select (select count(*) from city)  - count(*) from city where id < 5，这样可以大大减少扫描的行数
+
+
+
+
+
+#### Limit分页
+
+```sql
+select film_id, description from file order by title limit 50, 5;
+
+select film.film_id, film.description from file 
+      inner join(
+      	select film_id from film
+        order by title limit 50, 5
+      )as lim USING(film_id);
+```
+
