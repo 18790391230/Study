@@ -571,6 +571,8 @@ G1收集器之所以能建立可预测的停顿时间模型，是因为它将reg
 
     > -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps
     > -Xloggc:gc.log  
+    >
+    > -Xlog:gc:=debug:file=gc.log
 
 * gcviewer：分析GC日志
   
