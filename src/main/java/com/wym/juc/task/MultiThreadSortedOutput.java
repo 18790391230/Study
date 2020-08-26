@@ -20,13 +20,13 @@ public class MultiThreadSortedOutput {
         Condition conditionC = lock.newCondition();
         CountDownLatch latch = new CountDownLatch(1);
         CountDownLatch latch2 = new CountDownLatch(1);
-        new Thread(()->{
+        new Thread(() -> {
             sleep(3);
             int i = 0;
-            while (i++ < 10) {
-                try {
-                    lock.lock();
-                    latch.countDown();
+            try {
+                lock.lock();
+                latch.countDown();
+                while (i++ < 10) {
                     System.out.println("线程A输出：" + ii++);
                     System.out.println("线程A输出：" + ii++);
                     System.out.println("线程A输出：" + ii++);
@@ -34,16 +34,16 @@ public class MultiThreadSortedOutput {
                     if (i == 10) {
                         break;
                     }
-                    conditionA.await();  //释放锁
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } finally {
-                    lock.unlock();
+                    conditionA.await();  //释放锁，线程B会抢到锁
                 }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                lock.unlock();
             }
         }, "thread-A").start();
 
-        new Thread(()->{
+        new Thread(() -> {
             sleep(2);
             try {
                 latch.await();
@@ -51,10 +51,11 @@ public class MultiThreadSortedOutput {
                 e.printStackTrace();
             }
             int i = 0;
-            while (i++ < 10) {
-                try {
-                    lock.lock();
-                    latch2.countDown();
+
+            try {
+                lock.lock();
+                latch2.countDown();
+                while (i++ < 10) {
                     System.out.println("线程B输出：" + ii++);
                     System.out.println("线程B输出：" + ii++);
                     System.out.println("线程B输出：" + ii++);
@@ -63,15 +64,15 @@ public class MultiThreadSortedOutput {
                         break;
                     }
                     conditionB.await();  //释放锁
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } finally {
-                    lock.unlock();
                 }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                lock.unlock();
             }
         }, "thread-B").start();
 
-        new Thread(()->{
+        new Thread(() -> {
             sleep(1);
             int i = 0;
             try {
@@ -79,9 +80,9 @@ public class MultiThreadSortedOutput {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            while (i++ < 10) {
-                try {
-                    lock.lock();
+            try {
+                lock.lock();
+                while (i++ < 10) {
                     System.out.println("线程C输出：" + ii++);
                     System.out.println("线程C输出：" + ii++);
                     System.out.println("线程C输出：" + ii++);
@@ -90,11 +91,11 @@ public class MultiThreadSortedOutput {
                         break;
                     }
                     conditionC.await();  //释放锁
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } finally {
-                    lock.unlock();
                 }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                lock.unlock();
             }
         }, "thread-C").start();
     }
