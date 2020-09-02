@@ -1,9 +1,11 @@
 package com.wym.juc.lock;
 
+
 public class DeadLockTest {
 
     public static void main(String[] args) {
 
+        System.out.println("   " + System.getProperty("sun.arch.data.model"));
         Object lockA = new Object();
         Object lockB = new Object();
 
