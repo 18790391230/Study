@@ -1,0 +1,16 @@
+package com.drools.rules1
+
+import com.wym.drools.HelloWorld
+
+rule hello
+when
+        helloWorld : HelloWorld(type == "hello")
+    then
+        helloWorld.setDiscount(15);
+    end
+rule world
+when
+        helloWorld: HelloWorld(type == "world")
+    then
+        helloWorld.setDiscount(25);
+    end
