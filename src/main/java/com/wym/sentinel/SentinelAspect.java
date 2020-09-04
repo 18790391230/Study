@@ -28,6 +28,7 @@ public class SentinelAspect {
     public void around() {
 
     }
+//    @Throttle(resource = "{T(com.wym.sentinel.SentinelEnum).InterfaceA.code}", qps = 300)
 
     @Around("around()")
     public Object doAround(ProceedingJoinPoint joinPoint) {
