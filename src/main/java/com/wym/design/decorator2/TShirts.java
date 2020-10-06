@@ -1,0 +1,11 @@
+package com.wym.design.decorator2;
+
+public class TShirts extends Finery {
+
+
+    @Override
+    public void show() {
+        super.show();
+        System.out.println("T学");
+    }
+}
